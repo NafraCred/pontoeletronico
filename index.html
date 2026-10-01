@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PONTO ELETRONICO NAFRA CRED</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap">
+<style>
+:root{color-scheme:light;--bg:#f4f8fb;--card:#fff;--ink:#2c3e50;--mut:#7f8c8d;--line:#dde1ea;--ac:#1abc9c;--acx:#fff;--err:#e74c3c;--inp:#e8f0fe}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Archivo,system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.1rem;margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 2px 10px rgba(44,62,80,.07)}
+label{display:block;font-size:.9rem;color:var(--mut);margin:12px 0 4px}
+input,select{width:100%;padding:12px;font:inherit;color:var(--ink);background:var(--inp);border:1px solid var(--line);border-radius:8px}
+button{font:inherit;font-weight:600;padding:12px 16px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button.p{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+button.big{width:100%;padding:18px;font-size:1.15rem}
+button:disabled{opacity:.5}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.clock{font-size:3.6rem;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+.date{color:var(--mut);margin:4px 0 16px;text-align:center}.clock{text-align:center}
+#nome{text-align:center;font-size:1.3rem;margin:0 0 14px}
+.logo{display:block;max-height:44px;max-width:180px}.logo.big{max-height:90px;max-width:80%;margin:0 auto 12px}
+.brand{display:flex;align-items:center;gap:12px}
+.resumo{margin-top:16px;border-top:1px solid var(--line);padding-top:8px}.resumo div{display:flex;justify-content:space-between;padding:6px 0}
+.err{color:var(--err);min-height:1.4em;margin:10px 0 0}
+ol.tl{list-style:none;margin:16px 0 0;padding:0;border-left:2px solid var(--line)}
+ol.tl li{padding:6px 0 6px 16px;position:relative;color:var(--mut);display:flex;justify-content:space-between}
+ol.tl li::before{content:"";position:absolute;left:-7px;top:13px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--line)}
+ol.tl li.ok{color:var(--ink)} ol.tl li.ok::before{background:var(--ac);border-color:var(--ac)}
+ol.tl li.next{color:var(--ink);font-weight:600} ol.tl li.next::before{border-color:var(--ac)}
+.tabs{display:flex;gap:8px;margin-bottom:16px}.tabs button[aria-selected=true]{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}.row>*{flex:1 1 140px}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.modal .box{background:var(--card);border-radius:10px;padding:14px;max-width:420px;width:100%}
+video,.box img{width:100%;border-radius:8px;background:#000;display:block;margin-bottom:10px}
+video{transform:scaleX(-1)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<!-- LOGIN -->
+<section id="vLogin" hidden>
+  <div class="card">
+    <img class="logo big" src="logo.png" alt="Logo" onerror="this.remove()"><h1 style="text-align:center">REGISTRO DE PONTO</h1>
+    <label for="u">Usuário</label><input id="u" autocomplete="username" autocapitalize="none">
+    <label for="s">Senha ou PIN</label><input id="s" type="password" autocomplete="current-password">
+    <p class="err" id="eLogin" role="alert"></p>
+    <button class="p big" id="bLogin">Entrar</button>
+  </div>
+</section>
+
+<!-- FUNCIONÁRIO -->
+<section id="vFunc" hidden>
+  <div class="top"><img class="logo" src="logo.png" alt="Logo" onerror="this.remove()"><button id="sair1">Sair</button></div>
+  <h1 id="nome"></h1>
+  <div class="card">
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="date" id="date"></div>
+    <div id="tkBox" hidden><label for="tkIn">Token da direção</label><input id="tkIn" inputmode="numeric" autocomplete="off"><p class="date" id="janela"></p></div>
+    <button class="p big" id="bBater">Registrar</button>
+    <p class="err" id="eBater" role="alert"></p>
+    <ol class="tl" id="tl"></ol><div id="resumo" class="resumo" hidden></div>
+  </div>
+</section>
+
+<!-- ADMIN -->
+<section id="vAdmin" hidden>
+  <div class="top"><span class="brand"><img class="logo" src="logo.png" alt="Logo" onerror="this.remove()"><h1>Administração</h1></span><span><button id="irBater" hidden>Meu ponto</button> <button id="sair2">Sair</button></span></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tabR" aria-selected="true">Registros</button>
+    <button role="tab" id="tabF" aria-selected="false">Funcionários</button>
+  </div>
+  <div id="pR" class="card">
+    <div class="row">
+      <div><label for="d1">De</label><input type="date" id="d1"></div>
+      <div><label for="d2">Até</label><input type="date" id="d2"></div>
+      <div><label for="fFil">Funcionário</label><select id="fFil"></select></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="p" id="bBuscar">Buscar</button><button id="bCsv">Exportar registros</button><button id="bCsv2">Exportar resumo</button><button id="bPdf">Exportar PDF</button></div>
+    <div class="scroll" style="margin-top:12px"><table><thead><tr><th>Data</th><th>Hora</th><th>Funcionário</th><th>Registro</th><th>Foto</th><th>Local</th></tr></thead><tbody id="logs"></tbody></table></div>
+    <p class="err" id="eLogs" role="alert"></p>
+    <h1 style="margin-top:16px">Resumo por dia</h1>
+    <div class="scroll"><table><thead><tr><th>Data</th><th>Funcionário</th><th>Entrada</th><th>Saída</th><th>Tempo logado</th><th>Atraso</th><th>Almoço</th><th>Trabalhado</th></tr></thead><tbody id="rel"></tbody></table></div>
+  </div>
+  <div id="pF" class="card" hidden>
+    <h1 id="fTitulo">Novo funcionário</h1>
+    <label for="fNome">Nome</label><input id="fNome">
+    <label for="fUser">Usuário</label><input id="fUser" autocapitalize="none">
+    <label for="fSenha">Senha ou PIN <span id="fDica"></span></label><input id="fSenha" type="text" autocomplete="off">
+    <label for="fPerfil">Perfil de jornada</label>
+    <select id="fPerfil"><option value="integral">Integral (entrada, almoço, saída)</option><option value="parcial">Parcial (entrada, saída)</option></select>
+    <div class="row"><div><label for="fEnt">Horário de entrada</label><input type="time" id="fEnt"></div><div><label for="fSai">Horário de saída</label><input type="time" id="fSai"></div></div>
+    <label><input type="checkbox" id="fAtivo" checked style="width:auto"> Ativo</label>
+    <p class="err" id="eFunc" role="alert"></p><p id="tkOut" style="font-weight:600"></p>
+    <div class="row"><button class="p" id="bSalvar">Salvar funcionário</button><button id="bNovo">Limpar</button></div>
+    <div class="scroll" style="margin-top:16px"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Horário</th><th>Situação</th><th></th></tr></thead><tbody id="lista"></tbody></table></div>
+  </div>
+</section>
+</main>
+
+<!-- CÂMERA / FOTO -->
+<div class="modal" id="mCam" hidden><div class="box">
+  <video id="vid" autoplay playsinline muted></video>
+  <p id="camMsg" class="err"></p>
+  <div class="row"><button class="p" id="bFoto">Tirar foto e registrar</button><button id="bCancel">Cancelar</button></div>
+</div></div>
+<div class="modal" id="mImg" hidden><div class="box"><img id="img" alt="Foto do registro"><button id="bFechar" style="width:100%">Fechar</button></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+// ====== CONFIGURE AQUI (Supabase > Project Settings > API) ======
+const SUPABASE_URL = "https://pbstgouskyztxwjgbfht.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBic3Rnb3Vza3l6dHh3amdiZmh0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDcwMjE4MSwiZXhwIjoyMTA2Mjc4MTgxfQ.InDxkw4NTIMUGvFXnvMXhMG26pbUVl8X2FJ05XbrLLE";
+// =================================================================
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let token = null, estado = null, stream = null, funcs = [], linhas = [], rels = [];
+
+async function rpc(fn, args) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`},
+    body: JSON.stringify(args)
+  });
+  const j = await r.json().catch(() => null);
+  if (!r.ok) throw new Error(j?.message || "Erro de conexão. Tente novamente.");
+  return j;
+}
+const store = { get: () => { try { return localStorage.getItem("ponto_token"); } catch { return null; } },
+  set: v => { try { v ? localStorage.setItem("ponto_token", v) : localStorage.removeItem("ponto_token"); } catch {} } };
+const show = v => ["vLogin","vFunc","vAdmin"].forEach(x => $(x).hidden = x !== v);
+const hoje = () => new Date(Date.now() - 3*3600e3).toISOString().slice(0,10);
+const dur = s => { s = Math.max(0, Math.round(s)); return `${Math.floor(s/3600)}h ${String(Math.floor(s%3600/60)).padStart(2,"0")}min`; };
+
+// ---- login ----
+$("bLogin").onclick = async () => {
+  $("eLogin").textContent = "";
+  try {
+    const r = await rpc("app_login", {u: $("u").value, s: $("s").value});
+    token = r.token; store.set(token); $("s").value = ""; await entrar();
+  } catch (e) { $("eLogin").textContent = e.message; }
+};
+$("s").onkeydown = e => { if (e.key === "Enter") $("bLogin").click(); };
+function sair() { token = null; store.set(null); show("vLogin"); }
+$("sair1").onclick = $("sair2").onclick = sair;
+
+async function entrar() {
+  try { estado = await rpc("app_estado", {t: token}); } catch { return sair(); }
+  if (estado.admin) { show("vAdmin"); $("irBater").hidden = !estado.etapas; iniciarAdmin(); }
+  else { show("vFunc"); telaFunc(); }
+}
+$("irBater").onclick = () => { show("vFunc"); telaFunc(); };
+
+// ---- funcionário ----
+setInterval(() => {
+  const d = new Date(); $("clock").textContent = d.toLocaleTimeString("pt-BR");
+  $("date").textContent = d.toLocaleDateString("pt-BR", {weekday:"long", day:"numeric", month:"long"});
+}, 1000);
+let permPedida = false, pedeToken = false;
+async function pedirPermissoes() { // pede câmera e localização uma única vez, ao entrar
+  const est = n => navigator.permissions ? navigator.permissions.query({name: n}).then(r => r.state, () => "prompt") : Promise.resolve("prompt");
+  try { if (await est("camera") !== "granted") { const c = await navigator.mediaDevices.getUserMedia({video: true}); c.getTracks().forEach(t => t.stop()); } } catch {}
+  try { if (await est("geolocation") !== "granted") await posicao(); } catch {}
+}
+function telaFunc() {
+  $("nome").textContent = estado.nome;
+  if (!permPedida) { permPedida = true; pedirPermissoes(); }
+  const et = estado.etapas || [], n = estado.feitas.length;
+  $("tl").innerHTML = et.map((e, i) => `<li class="${i < n ? "ok" : i === n ? "next" : ""}"><span>${esc(e)}</span><span>${i < n ? esc(estado.feitas[i].hora) : ""}</span></li>`).join("");
+  $("bBater").disabled = !et.length || n >= et.length;
+  $("tkBox").hidden = !(pedeToken && et.length && n === 0);
+  $("janela").textContent = estado.janela ? `Horário permitido para entrada: ${estado.janela}` : "";
+  const r = estado.resumo, R = $("resumo");
+  R.hidden = !(r && et.length && n >= et.length);
+  if (!R.hidden) R.innerHTML = [["Tempo de almoço", r.almoco], ["Tempo trabalhado", r.total - r.almoco], ["Total na empresa", r.total]].map(([k, v]) => `<div><span>${k}</span><b>${dur(v)}</b></div>`).join("");
+  $("bBater").textContent = !et.length ? "Sem perfil de jornada" : n >= et.length ? "Jornada de hoje concluída" : `Registrar: ${et[n]}`;
+}
+$("bBater").onclick = async () => {
+  $("eBater").textContent = ""; $("camMsg").textContent = "";
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user", width: 640}, audio: false});
+    $("vid").srcObject = stream; $("mCam").hidden = false;
+  } catch { $("eBater").textContent = "Permita o uso da câmera para registrar o ponto."; }
+};
+function fechaCam() { stream?.getTracks().forEach(t => t.stop()); stream = null; $("mCam").hidden = true; }
+$("bCancel").onclick = fechaCam;
+const posicao = () => new Promise(res => navigator.geolocation
+  ? navigator.geolocation.getCurrentPosition(p => res({lat: p.coords.latitude, lng: p.coords.longitude}), () => res({lat: null, lng: null}), {timeout: 8000, enableHighAccuracy: true})
+  : res({lat: null, lng: null}));
+$("bFoto").onclick = async () => {
+  const v = $("vid"); if (!v.videoWidth) return;
+  $("bFoto").disabled = true; $("camMsg").textContent = "Registrando…";
+  const c = document.createElement("canvas"); c.width = 360; c.height = Math.round(360 * v.videoHeight / v.videoWidth);
+  c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+  const foto = c.toDataURL("image/jpeg", 0.6), pos = await posicao();
+  try {
+    await rpc("app_bater", {t: token, p_foto: foto, p_lat: pos.lat, p_lng: pos.lng, p_token: $("tkIn").value.trim() || null});
+    fechaCam(); $("tkIn").value = ""; pedeToken = false; estado = await rpc("app_estado", {t: token}); telaFunc();
+  } catch (e) {
+    const foraHora = estado.feitas.length === 0 && /hor[aá]rio|token|fora|janela/i.test(e.message || "");
+    if (foraHora) { // só agora mostra o campo do token
+      pedeToken = true; fechaCam(); telaFunc();
+      $("eBater").textContent = e.message; $("tkIn").focus();
+    } else $("camMsg").textContent = e.message;
+  }
+  $("bFoto").disabled = false;
+};
+
+// ---- admin ----
+const aba = r => { $("pR").hidden = !r; $("pF").hidden = r; $("tabR").setAttribute("aria-selected", r); $("tabF").setAttribute("aria-selected", !r); };
+$("tabR").onclick = () => aba(true); $("tabF").onclick = () => aba(false);
+async function iniciarAdmin() { $("d1").value = $("d2").value = hoje(); await carregaFuncs(); buscar(); }
+async function carregaFuncs() {
+  funcs = await rpc("admin_func_listar", {t: token});
+  $("fFil").innerHTML = `<option value="">Todos</option>` + funcs.map(f => `<option value="${f.id}">${esc(f.nome)}</option>`).join("");
+  $("lista").innerHTML = funcs.map(f => `<tr><td>${esc(f.nome)}</td><td>${esc(f.usuario)}</td><td>${esc(f.perfil || "admin")}</td><td>${f.hora_entrada ? f.hora_entrada.slice(0,5) + "–" + (f.hora_saida || "").slice(0,5) : "livre"}</td><td>${f.ativo ? "Ativo" : "Inativo"}</td><td><button data-id="${f.id}">Editar</button> <button data-tk="${f.id}">Token</button></td></tr>`).join("");
+  $("lista").querySelectorAll("button[data-id]").forEach(b => b.onclick = () => editar(funcs.find(f => f.id === b.dataset.id)));
+  $("lista").querySelectorAll("button[data-tk]").forEach(b => b.onclick = async () => {
+    const f = funcs.find(x => x.id === b.dataset.tk);
+    try { const c = await rpc("admin_token_gerar", {t: token, fid: f.id}); $("tkOut").textContent = `Token de ${f.nome}: ${c} (vale 12 horas e só pode ser usado uma vez)`; }
+    catch (e) { $("tkOut").textContent = e.message; }
+  });
+}
+async function buscar() {
+  $("eLogs").textContent = "";
+  try {
+    const args = {t: token, d1: $("d1").value, d2: $("d2").value, fid: $("fFil").value || null};
+    rels = await rpc("admin_relatorio", args);
+    const m = v => v == null ? "—" : dur(v);
+    $("rel").innerHTML = rels.map(r => `<tr><td>${r.data}</td><td>${esc(r.nome)}</td><td>${r.entrada || "—"}</td><td>${r.saida || "em andamento"}</td><td>${m(r.logado)}</td><td>${r.atraso == null ? "—" : r.atraso > 0 ? dur(r.atraso) : "No horário"}</td><td>${m(r.almoco)}</td><td>${m(r.trabalhado)}</td></tr>`).join("") || `<tr><td colspan="8">Nenhum dia no período.</td></tr>`;
+    linhas = await rpc("admin_logs", args);
+    $("logs").innerHTML = linhas.map(l => `<tr><td>${l.data}</td><td>${l.hora}</td><td>${esc(l.nome)}</td><td>${esc(l.etapa)}</td>
+      <td><button data-b="${l.id}">Ver</button></td>
+      <td>${l.lat != null ? `<a href="https://www.google.com/maps?q=${l.lat},${l.lng}" target="_blank" rel="noopener">Mapa</a>` : "—"}</td></tr>`).join("")
+      || `<tr><td colspan="6">Nenhum registro no período.</td></tr>`;
+    $("logs").querySelectorAll("button").forEach(b => b.onclick = async () => {
+      try { $("img").src = await rpc("admin_foto", {t: token, bid: +b.dataset.b}); $("mImg").hidden = false; }
+      catch (e) { $("eLogs").textContent = e.message; }
+    });
+  } catch (e) { $("eLogs").textContent = e.message; }
+}
+$("bBuscar").onclick = buscar; $("bFechar").onclick = () => $("mImg").hidden = true;
+$("bCsv").onclick = () => {
+  const csv = ["Data;Hora;Funcionário;Registro;Latitude;Longitude", ...linhas.map(l => [l.data, l.hora, l.nome, l.etapa, l.lat ?? "", l.lng ?? ""].join(";"))].join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], {type: "text/csv"}));
+  a.download = `ponto_${$("d1").value}_${$("d2").value}.csv`; a.click();
+};
+$("bCsv2").onclick = () => {
+  const c = v => v == null ? "" : dur(v);
+  const csv = ["Data;Funcionário;Entrada;Saída;Tempo logado;Atraso;Almoço;Trabalhado", ...rels.map(r => [r.data, r.nome, r.entrada || "", r.saida || "", c(r.logado), c(r.atraso), c(r.almoco), c(r.trabalhado)].join(";"))].join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], {type: "text/csv"}));
+  a.download = `resumo_ponto_${$("d1").value}_${$("d2").value}.csv`; a.click();
+};
+const logoData = () => new Promise(res => {
+  const i = new Image();
+  i.onload = () => { try { const c = document.createElement("canvas"); c.width = i.naturalWidth; c.height = i.naturalHeight; c.getContext("2d").drawImage(i, 0, 0); res({d: c.toDataURL("image/png"), w: i.naturalWidth, h: i.naturalHeight}); } catch { res(null); } };
+  i.onerror = () => res(null); i.src = "logo.png";
+});
+$("bPdf").onclick = async () => {
+  $("eLogs").textContent = "";
+  if (!rels.length && !linhas.length) { $("eLogs").textContent = "Faça uma busca antes de gerar o PDF."; return; }
+  if (!window.jspdf) { $("eLogs").textContent = "Não foi possível carregar o gerador de PDF. Verifique a internet e tente de novo."; return; }
+  const doc = new window.jspdf.jsPDF({orientation: "landscape", unit: "mm", format: "a4"});
+  const fmt = v => v.split("-").reverse().join("/"), fun = $("fFil").selectedOptions[0].textContent;
+  const lg = await logoData(); let x = 14;
+  if (lg) { let w = 14 * lg.w / lg.h, h = 14; if (w > 50) { w = 50; h = w * lg.h / lg.w; } doc.addImage(lg.d, "PNG", 14, 10, w, h); x = 14 + w + 6; }
+  doc.setFontSize(16); doc.text("Relatório de ponto", x, 17);
+  doc.setFontSize(10); doc.text(`Período: ${fmt($("d1").value)} a ${fmt($("d2").value)}   |   Funcionário: ${fun}`, x, 23);
+  doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, x, 28);
+  const c = v => v == null ? "—" : dur(v), st = {fontSize: 9}, hs = {fillColor: [11, 122, 117]};
+  doc.setFontSize(12); doc.text("Resumo por dia", 14, 38);
+  doc.autoTable({startY: 41, styles: st, headStyles: hs,
+    head: [["Data", "Funcionário", "Entrada", "Saída", "Tempo logado", "Atraso", "Almoço", "Trabalhado"]],
+    body: rels.map(r => [r.data, r.nome, r.entrada || "—", r.saida || "em andamento", c(r.logado), r.atraso == null ? "—" : r.atraso > 0 ? dur(r.atraso) : "No horário", c(r.almoco), c(r.trabalhado)])});
+  const y = (doc.lastAutoTable?.finalY ?? 41) + 10;
+  doc.setFontSize(12); doc.text("Registros", 14, y);
+  doc.autoTable({startY: y + 3, styles: st, headStyles: hs, head: [["Data", "Hora", "Funcionário", "Registro", "Local"]],
+    body: linhas.map(l => [l.data, l.hora, l.nome, l.etapa, l.lat != null ? `${l.lat.toFixed(5)}, ${l.lng.toFixed(5)}` : "—"])});
+  doc.save(`ponto_${fun.replace(/\s+/g, "_")}_${$("d1").value}_${$("d2").value}.pdf`);
+};
+let editId = null;
+function editar(f) {
+  editId = f?.id || null;
+  $("fTitulo").textContent = f ? "Editar funcionário" : "Novo funcionário";
+  $("fNome").value = f?.nome || ""; $("fUser").value = f?.usuario || ""; $("fSenha").value = "";
+  $("fPerfil").value = f?.perfil || "integral"; $("fEnt").value = (f?.hora_entrada || "").slice(0,5); $("fSai").value = (f?.hora_saida || "").slice(0,5); $("fAtivo").checked = f ? f.ativo : true;
+  $("fDica").textContent = f ? "(deixe em branco para manter)" : ""; $("eFunc").textContent = "";
+}
+$("bNovo").onclick = () => editar(null);
+$("bSalvar").onclick = async () => {
+  $("eFunc").textContent = "";
+  try {
+    await rpc("admin_func_salvar", {t: token, p_id: editId, p_nome: $("fNome").value, p_usuario: $("fUser").value,
+      p_senha: $("fSenha").value, p_perfil: $("fPerfil").value, p_ativo: $("fAtivo").checked, p_entrada: $("fEnt").value || null, p_saida: $("fSai").value || null});
+    editar(null); await carregaFuncs();
+  } catch (e) { $("eFunc").textContent = e.message.includes("duplicate") ? "Esse usuário já existe." : e.message; }
+};
+
+// ---- início ----
+(async () => { token = store.get(); token ? await entrar() : show("vLogin"); })();
+</script>
+</body>
+</html>
